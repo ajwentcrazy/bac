@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAC STI2D - Coach Physique-Chimie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Configuration Tailwind pour l'animation 3D -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: { 'fade-in': 'fadeIn 0.4s ease-out forwards' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Classes utilitaires pour la 3D de la Flashcard */
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="bg-indigo-600 p-2 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-xl text-white"></i>
+                    </div>
+                    <span class="font-bold text-lg tracking-tight sm:block hidden">BAC STI2D <span class="text-indigo-400 font-medium">Physique-Chimie</span></span>
+                    <span class="font-bold text-lg tracking-tight sm:hidden block">BAC <span class="text-indigo-400 font-medium">P-C</span></span>
+                </div>
+                
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-2 rounded-md text-sm font-medium bg-indigo-950 text-white transition">
+                        <i class="fas fa-chart-line mr-1.5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('courses')" id="nav-courses" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-800 transition">
+                        <i class="fas fa-book mr-1.5"></i> Fiches de Cours
+                    </button>
+                    <button onclick="switchTab('flashcards')" id="nav-flashcards" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-800 transition">
+                        <i class="fas fa-layer-group mr-1.5"></i> Flashcards
+                    </button>
+                    <button onclick="switchTab('calc')" id="nav-calc" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-800 transition">
+                        <i class="fas fa-calculator mr-1.5"></i> Exercices
+                    </button>
+                </div>
+
+                <!-- Reset Button -->
+                <div>
+                    <button onclick="resetData()" class="text-xs bg-red-600 hover:bg-red-700 px-2.5 py-1.5 rounded font-medium transition cursor-pointer">
+                        <i class="fas fa-undo"></i> <span class="hidden sm:inline">Réinitialiser</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Bottom Nav bar -->
+        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-950 border-t border-indigo-800 flex justify-around py-2 z-50 shadow-lg">
+            <button onclick="switchTab('dashboard')" id="m-nav-dashboard" class="flex flex-col items-center text-xs text-white">
+                <i class="fas fa-chart-line text-lg mb-0.5"></i> Dash
+            </button>
+            <button onclick="switchTab('courses')" id="m-nav-courses" class="flex flex-col items-center text-xs text-indigo-300">
+                <i class="fas fa-book text-lg mb-0.5"></i> Cours
+            </button>
+            <button onclick="switchTab('flashcards')" id="m-nav-flashcards" class="flex flex-col items-center text-xs text-indigo-300">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i> Cartes
+            </button>
+            <button onclick="switchTab('calc')" id="m-nav-calc" class="flex flex-col items-center text-xs text-indigo-300">
+                <i class="fas fa-calculator text-lg mb-0.5"></i> Calculs
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 md:pb-12 relative">
+        
+        <!-- ================= TAB: DASHBOARD ================= -->
+        <section id="tab-dashboard" class="tab-content block animate-fade-in">
+            <!-- Welcome banner -->
+            <div class="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl p-6 text-white shadow-lg mb-6 flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-4 md:mb-0 text-center md:text-left">
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Bonjour, futur bachelier ! 👋</h1>
+                    <p class="text-indigo-100 text-sm mt-1 max-w-xl">Entraînement avec algorithme de répétition espacée. Concentre-toi sur tes points faibles, l'application se charge du reste.</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-xl border border-white/10 text-center">
+                    <span class="text-xs uppercase font-semibold tracking-wider text-indigo-200">Statut de préparation</span>
+                    <p id="prof-quote" class="font-bold text-sm text-yellow-300 mt-0.5">"Prêt à t'entraîner !"</p>
+                </div>
+            </div>
+
+            <!-- Main Stats Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- BAC Probability Gauge Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
+                    <h3 class="font-bold text-slate-700 uppercase text-xs tracking-wider mb-4">Probabilité de réussite au BAC</h3>
+                    
+                    <!-- Dynamic Circular Progress Gauge -->
+                    <div class="relative flex items-center justify-center w-40 h-40">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" stroke="#e2e8f0" stroke-width="8" fill="transparent" />
+                            <circle id="gauge-progress" cx="50" cy="50" r="42" stroke="#4f46e5" stroke-width="8" fill="transparent" 
+                                    stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round" class="transition-all duration-1000 ease-out" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="gauge-percentage" class="text-4xl font-black text-slate-900">30%</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">de chances</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 mt-4 px-4 leading-relaxed">
+                        Score calculé sur tes Flashcards maîtrisées (clic "Facile") et tes exercices réussis.
+                    </p>
+                </div>
+
+                <!-- Numerical Statistics -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 grid grid-cols-2 gap-4 lg:col-span-2">
+                    <div class="bg-slate-50 rounded-xl p-4 flex items-center space-x-4">
+                        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-xl"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <span class="text-xs text-slate-500 font-medium block">Cartes étudiées</span>
+                            <span id="stat-cards" class="text-2xl font-black text-slate-800">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg text-xl"><i class="fas fa-check-double"></i></div>
+                        <div>
+                            <span class="text-xs text-slate-500 font-medium block">Cartes Maîtrisées ("Facile")</span>
+                            <span id="stat-mastered" class="text-2xl font-black text-slate-800">0 / 130</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 flex items-center space-x-4">
+                        <div class="p-3 bg-red-100 text-red-600 rounded-lg text-xl"><i class="fas fa-brain"></i></div>
+                        <div>
+                            <span class="text-xs text-slate-500 font-medium block">Cartes à renforcer</span>
+                            <span id="stat-struggle" class="text-2xl font-black text-slate-800">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 flex items-center space-x-4">
+                        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-xl"><i class="fas fa-calculator"></i></div>
+                        <div>
+                            <span class="text-xs text-slate-500 font-medium block">Calculs Validés</span>
+                            <span id="stat-calcs" class="text-2xl font-black text-slate-800">0 / 7</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détail de Maîtrise par Cours -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center"><i class="fas fa-list-check text-indigo-600 mr-2"></i> Maîtrise détaillée (Basée sur les Flashcards)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="course-mastery-list">
+                    <!-- Rempli dynamiquement via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB: COURSES ================= -->
+        <section id="tab-courses" class="tab-content hidden animate-fade-in">
+            <div class="mb-6">
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Fiches Essentielles du Programme</h1>
+                <p class="text-slate-500 text-sm mt-0.5">Retrouve ici les définitions et formules de tes 13 fiches de Physique-Chimie.</p>
+            </div>
+            <div class="space-y-3" id="course-accordion"></div>
+        </section>
+
+        <!-- ================= TAB: FLASHCARDS (SRS) ================= -->
+        <section id="tab-flashcards" class="tab-content hidden animate-fade-in">
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-6 text-center">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Répétition Espacée</h1>
+                    <p class="text-slate-500 text-sm mt-0.5 mb-4">Clique sur la carte pour voir la réponse, puis évalue honnêtement ta mémoire.</p>
+                    
+                    <!-- Menu de filtre par cours -->
+                    <div class="max-w-sm mx-auto">
+                        <select id="flashcard-topic-select" onchange="drawNextSRSFlashcard()" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer transition">
+                            <option value="all">Toutes les fiches (Mélange global)</option>
+                            <!-- Rempli dynamiquement -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Flashcard 3D Container -->
+                <div id="flashcard-container" class="relative w-full h-80 perspective cursor-pointer group max-w-2xl mx-auto" onclick="flipCard()">
+                    <div id="flashcard-inner" class="w-full h-full transition-transform duration-500 preserve-3d relative shadow-lg rounded-3xl">
+                        
+                        <!-- FRONT -->
+                        <div class="absolute inset-0 backface-hidden bg-white border border-slate-200 rounded-3xl p-8 flex flex-col justify-center items-center text-center">
+                            <span id="card-topic" class="absolute top-6 text-xs font-bold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">Thème</span>
+                            <h2 id="card-question" class="text-xl sm:text-2xl font-bold text-slate-800 leading-snug">Chargement...</h2>
+                            <p class="absolute bottom-6 text-slate-400 text-xs flex items-center"><i class="fas fa-hand-pointer mr-2"></i> Clique pour retourner</p>
+                        </div>
+
+                        <!-- BACK -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-50 border border-indigo-200 rounded-3xl p-8 flex flex-col justify-center items-center text-center shadow-inner">
+                            <span class="absolute top-6 text-xs font-bold uppercase tracking-wider text-indigo-400">Réponse</span>
+                            <h2 id="card-answer" class="text-lg sm:text-xl font-medium text-indigo-900 leading-snug">Chargement...</h2>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SRS Assessment Buttons (Hidden initially) - NOW 4 COLUMNS -->
+                <div id="srs-controls" class="mt-8 hidden grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 animate-fade-in max-w-2xl mx-auto">
+                    <!-- Bouton Oublié -->
+                    <button onclick="handleSRS('oubli')" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border border-red-200 rounded-2xl hover:bg-red-50 hover:border-red-400 transition cursor-pointer shadow-sm">
+                        <i class="fas fa-skull text-red-500 text-xl sm:text-2xl mb-1"></i>
+                        <span class="font-bold text-slate-700 text-sm">Oublié</span>
+                        <span class="text-[10px] text-slate-400">À revoir vite</span>
+                    </button>
+                    <!-- Bouton Moyen -->
+                    <button onclick="handleSRS('moyen')" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border border-amber-200 rounded-2xl hover:bg-amber-50 hover:border-amber-400 transition cursor-pointer shadow-sm">
+                        <i class="fas fa-brain text-amber-500 text-xl sm:text-2xl mb-1"></i>
+                        <span class="font-bold text-slate-700 text-sm">Moyen</span>
+                        <span class="text-[10px] text-slate-400">J'ai hésité</span>
+                    </button>
+                    <!-- Bouton Facile -->
+                    <button onclick="handleSRS('facile')" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-white border border-emerald-200 rounded-2xl hover:bg-emerald-50 hover:border-emerald-400 transition cursor-pointer shadow-sm">
+                        <i class="fas fa-check-double text-emerald-500 text-xl sm:text-2xl mb-1"></i>
+                        <span class="font-bold text-slate-700 text-sm">Facile</span>
+                        <span class="text-[10px] text-slate-400">Maîtrisé</span>
+                    </button>
+                    <!-- NOUVEAU: Bouton Exemple (Purement informatif) -->
+                    <button onclick="openExampleModal()" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-indigo-600 border border-indigo-700 rounded-2xl hover:bg-indigo-700 transition cursor-pointer shadow-sm text-white">
+                        <i class="fas fa-lightbulb text-yellow-300 text-xl sm:text-2xl mb-1"></i>
+                        <span class="font-bold text-sm">Exemple</span>
+                        <span class="text-[10px] text-indigo-200">Voir une application</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB: CALCUL EXERCISES ================= -->
+        <section id="tab-calc" class="tab-content hidden animate-fade-in">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-6 text-center">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Mises en Situation & Calculs</h1>
+                    <p class="text-slate-500 text-sm mt-0.5">Sors ton brouillon et ta calculatrice. Applique la théorie !</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-1 space-y-2" id="calc-sidebar-list"></div>
+                    <div class="lg:col-span-3">
+                        <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+                            <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                                <span id="calc-active-title" class="text-indigo-600">Problème 1</span>
+                                <span id="calc-active-status" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Non résolu</span>
+                            </div>
+                            <div id="calc-question-body" class="text-slate-800 text-sm leading-relaxed space-y-4 mb-6"></div>
+
+                            <div id="calc-interactive-zone" class="border-t border-slate-100 pt-6">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Saisis ta valeur numérique :</label>
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <div class="relative flex-1">
+                                        <input type="number" id="calc-user-input" step="any" placeholder="Ex: 24.5" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+                                        <span id="calc-unit-addon" class="absolute right-4 top-3.5 text-sm font-bold text-slate-400">unit</span>
+                                    </div>
+                                    <button onclick="checkCalculation()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-sm whitespace-nowrap cursor-pointer">
+                                        <i class="fas fa-check-circle mr-1"></i> Valider
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="calc-explanation-pane" class="mt-6 border-t border-slate-100 pt-6 hidden">
+                                <div id="calc-result-header" class="p-4 rounded-xl mb-4 font-bold flex items-center space-x-2"></div>
+                                <h4 class="font-bold text-sm text-slate-900 mb-2 flex items-center"><i class="fas fa-chalkboard-user text-indigo-600 mr-2"></i> Explication :</h4>
+                                <div id="calc-explanation-text" class="text-xs text-slate-600 bg-slate-50 rounded-xl p-4 leading-relaxed font-normal whitespace-pre-line space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NOUVEAU : MODALE POUR L'EXEMPLE DE LA FLASHCARD -->
+        <div id="example-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+            <!-- Overlay sombre cliquable pour fermer -->
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeExampleModal()"></div>
+            
+            <!-- Contenu de la modale -->
+            <div class="relative bg-white w-11/12 max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-black text-slate-900 flex items-center"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Exemple d'application</h3>
+                    <button onclick="closeExampleModal()" class="text-slate-400 hover:text-red-500 transition cursor-pointer">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div id="modal-example-text" class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 text-sm text-slate-700 leading-relaxed font-medium">
+                    <!-- L'exemple sera injecté ici par JS -->
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                    <button onclick="closeExampleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition cursor-pointer">
+                        Compris, fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. DATA: 13 FICHES DE COURS ---
+        const courseData = [
+            { id: 1, pole: "Énergie", title: "1. Énergie Chimique", content: "Piles et accumulateurs sont des convertisseurs électrochimiques.<br>Capacité : Q = I × Δt (Q en A.h, I en A).<br>Énergie : W = Q × U (W en W.h, U en V)." },
+            { id: 2, pole: "Énergie", title: "2. Énergie Interne", content: "3 modes de transferts : Conduction, Convection, Rayonnement.<br>Flux thermique : Φ = Q / Δt (W).<br>Résistance thermique : R_TH = e / λ (m².K.W⁻¹). Plus λ est petit, plus le matériau est isolant." },
+            { id: 3, pole: "Énergie", title: "3. Énergie Mécanique", content: "PFD : ΣF_ext = m × a.<br>Énergie Cinétique : E_c = ½ × m × v² (Joules).<br>Travail : W = F × AB × cos(α). Moteur si > 0, résistant si < 0." },
+            { id: 4, pole: "Matière", title: "4. Oxydo-Réduction", content: "Oxydant : capte les e⁻. Réducteur : cède les e⁻.<br>Anode = oxydation (fournit e⁻). Cathode = réduction.<br>Faraday : Q = n_e⁻ × F (F = 96500 C.mol⁻¹)." },
+            { id: 5, pole: "Énergie", title: "5. Énergie Solaire", content: "Photons : E = h × f = h × c / λ.<br>Capteur thermique : Q = m × c × Δθ.<br>Panneau PV : Point max (P_max) dans le coude de la courbe I-U." },
+            { id: 6, pole: "Matière", title: "6. Acide - Base", content: "pH = -log[H₃O⁺] et [H₃O⁺] = 10^-pH.<br>Acide cède H⁺, Base capte H⁺. Neutre si pH=7.<br>Facteur de dilution : F = C_mère / C_fille = V_fille / V_mère." },
+            { id: 7, pole: "Matière", title: "7. Changements d'État", content: "Température constante durant le changement d'un corps pur.<br>Énergie : Q = m × L (L = enthalpie en J.kg⁻¹).<br>Solide à Liquide = Fusion. Gaz à Liquide = Liquéfaction." },
+            { id: 8, pole: "Matière", title: "8. Combustion", content: "Triangle : Combustible, Comburant (O₂), Énergie d'activation.<br>Complète = CO₂ + H₂O. Incomplète = CO (toxique).<br>Pouvoir Calorifique : Q = PCI × m_combustible." },
+            { id: 9, pole: "Énergie", title: "9. Transport Électrique", content: "Effet Joule : P_J = R_L × I².<br>On augmente la tension (THT) pour baisser I et réduire les pertes.<br>Transformateur : m = N₂ / N₁ = U₂ / U₁." },
+            { id: 10, pole: "Énergie", title: "10. Protection Électrique", content: "Disjoncteur Différentiel (DDR) 30 mA + Terre = protection des personnes.<br>Tension sécurité : 50V (sec), 25V (humide). Loi d'Ohm : I = U_c / R_corps." },
+            { id: 11, pole: "Énergie", title: "11. Mécanique de Rotation", content: "Vitesse angulaire : ω = Δθ / Δt. Relation : v = R × ω.<br>1 tr/min = (2π / 60) rad.s⁻¹.<br>Moment d'une force : M = F × d (Bras de levier)." },
+            { id: 12, pole: "Ondes", title: "12. Ondes Électromagnétiques", content: "c = 3×10⁸ m.s⁻¹. λ = c / f.<br>Fibre optique : Guidage par réflexion totale interne (coeur n1 > gaine n2).<br>Atténuation : A_dB = 10 × log(P_ent / P_sort)." },
+            { id: 13, pole: "Ondes", title: "13. Ondes Sonores & Puissance", content: "Acoustique : I = P / S. Niveau L = 10 × log(I / I₀).<br>Doubler les sources = +3 dB. Distance × 10 = -20 dB.<br>Puissance active AC : P = U×I×cos(φ). Apparente : S = U×I (VA)." }
+        ];
+
+        // --- 2. DATA: 130 FLASHCARDS avec la propriété "ex" (Exemple) ---
+        const flashcardsData = [
+            // Chap 1: Énergie Chimique
+            { id: 101, topic: "1. Énergie Chimique", q: "Quelle est la formule liant la capacité Q, l'intensité I et la durée Δt ?", a: "Q = I × Δt (en A.h)", ex: "Ex: Si une batterie délivre un courant de 2 A pendant 4 h, sa capacité consommée est Q = 2 × 4 = 8 A.h." },
+            { id: 102, topic: "1. Énergie Chimique", q: "Quelle est la formule de l'énergie stockée W dans une batterie ?", a: "W = Q × U (en W.h ou Joules)", ex: "Ex: Une batterie de 50 A.h sous 12 V possède une énergie de W = 50 × 12 = 600 W.h." },
+            { id: 103, topic: "1. Énergie Chimique", q: "Quel est le rôle principal d'une pile ou d'un accumulateur ?", a: "Convertir l'énergie chimique stockée en énergie électrique continue.", ex: "Ex: Dans ton smartphone, la batterie (chimique) fournit l'électricité nécessaire pour allumer l'écran." },
+            { id: 104, topic: "1. Énergie Chimique", q: "Qu'est-ce qui différencie une pile d'un accumulateur ?", a: "L'accumulateur est réversible (il peut être rechargé).", ex: "Ex: Une pile alcaline classique se jette après usage. La batterie de ta voiture (plomb) est un accumulateur, l'alternateur la recharge." },
+            { id: 105, topic: "1. Énergie Chimique", q: "Quelles sont les unités de la formule W = Q × U ?", a: "W en W.h, Q en A.h, U en Volt (V).", ex: "Rappel: Si Q est en Coulombs (A.s), alors W sera en Joules (J). 1 W.h = 3600 J." },
+            { id: 106, topic: "1. Énergie Chimique", q: "Qu'appelle-t-on la 'tension nominale' (ou à vide) ?", a: "La tension fournie par la pile lorsqu'elle n'alimente aucune charge.", ex: "Ex: Sur une pile de télécommande, il est écrit 1.5V. C'est sa tension nominale (à vide)." },
+            { id: 107, topic: "1. Énergie Chimique", q: "De quoi est techniquement composée une 'batterie' ?", a: "De l'association de plusieurs accumulateurs.", ex: "Ex: Une batterie de voiture 12V est souvent composée de 6 accumulateurs au plomb de 2V branchés en série." },
+            { id: 108, topic: "1. Énergie Chimique", q: "Quelle est l'unité de l'intensité du courant électrique (I) ?", a: "L'Ampère (A).", ex: "L'intensité représente le \"débit\" d'électrons, comme le débit d'eau dans un tuyau." },
+            { id: 109, topic: "1. Énergie Chimique", q: "Qu'est-ce qu'un 'cycle' de vie pour un accumulateur ?", a: "Une phase de charge suivie d'une phase de décharge.", ex: "Ex: Un accumulateur Li-ion de téléphone est souvent garanti pour environ 500 à 1000 cycles avant de perdre sa capacité." },
+            { id: 110, topic: "1. Énergie Chimique", q: "Comment mesure-t-on la tension à vide d'une batterie ?", a: "Au voltmètre, branché en dérivation (position DC), sans circuit branché.", ex: "On branche le fil rouge du voltmètre sur le + et le noir sur le - de la pile isolée sur la table." },
+            
+            // Chap 2: Énergie Interne
+            { id: 201, topic: "2. Énergie Interne", q: "Quels sont les 3 modes de transfert thermique ?", a: "La conduction, la convection et le rayonnement.", ex: "Ex: Conduction = cuillère chaude dans le café. Convection = radiateur chauffant l'air. Rayonnement = chaleur du soleil." },
+            { id: 202, topic: "2. Énergie Interne", q: "Quelle est la formule du flux thermique Φ par rapport à l'énergie ?", a: "Φ = Q / Δt (équivalent à une puissance, en Watt).", ex: "Ex: Si un mur perd Q = 6000 J en 2 secondes, le flux thermique est Φ = 6000 / 2 = 3000 W." },
+            { id: 203, topic: "2. Énergie Interne", q: "Quelle est la formule de la résistance thermique R_TH d'un mur ?", a: "R_TH = e / λ (e = épaisseur, λ = conductivité).", ex: "Ex: Un mur de e=0.2m avec un λ=0.04 a une R_TH = 0.2 / 0.04 = 5 m².K.W⁻¹." },
+            { id: 204, topic: "2. Énergie Interne", q: "Comment s'exprime le flux Φ avec les températures et R_TH ?", a: "Φ = S × (θ_chaude - θ_froide) / R_TH", ex: "Ex: Plus la différence de température intérieur/extérieur est grande, plus le flux (la perte de chaleur) est important." },
+            { id: 205, topic: "2. Énergie Interne", q: "Comment définit-on la 'conduction' thermique ?", a: "Transmission de chaleur de proche en proche dans la matière solide, sans déplacement.", ex: "Ex: C'est l'agitation des atomes chauffés qui vient bousculer les atomes voisins froids." },
+            { id: 206, topic: "2. Énergie Interne", q: "Comment définit-on la 'convection' thermique ?", a: "Transmission de chaleur impliquant un déplacement de matière (liquides, gaz).", ex: "Ex: L'air chaud, moins dense, monte au plafond. L'air froid descend." },
+            { id: 207, topic: "2. Énergie Interne", q: "Comment calculer la résistance R_TH d'un mur multicouche ?", a: "Les résistances s'additionnent : R_TH_totale = R_TH_1 + R_TH_2.", ex: "Ex: R_TH_béton (0.5) + R_TH_LaineDeVerre (4.0) = R_TH_totale de 4.5." },
+            { id: 208, topic: "2. Énergie Interne", q: "Quelle est l'unité de la conductivité thermique λ ?", a: "W·m⁻¹·K⁻¹", ex: "Plus cette valeur λ est basse, moins le matériau conduit la chaleur (donc c'est un bon isolant)." },
+            { id: 209, topic: "2. Énergie Interne", q: "Quelle est la formule du flux thermique surfacique φ ?", a: "φ = Φ / S (en W·m⁻²).", ex: "Ex: Si un flux total de 1000 W traverse une fenêtre de 2 m², le flux surfacique est de 500 W par m²." },
+            { id: 210, topic: "2. Énergie Interne", q: "Que déduit-on d'un matériau dont le λ est très petit ?", a: "Que c'est un excellent isolant thermique (conduit très peu la chaleur).", ex: "Ex: L'air immobile a un λ d'environ 0.026. Le polystyrène emprisonne l'air, c'est pour ça qu'il est très isolant." },
+
+            // Chap 3: Mécanique
+            { id: 301, topic: "3. Énergie Mécanique", q: "Quelle est la formule du Principe Fondamental de la Dynamique (PFD) ?", a: "ΣF_ext = m × a", ex: "Ex: Si on pousse une voiture de 1000kg avec une force de 2000N (sans frottements), a = 2000/1000 = 2 m.s⁻²." },
+            { id: 302, topic: "3. Énergie Mécanique", q: "Quelle est l'expression de l'énergie cinétique Ec ?", a: "Ec = ½ × m × v²", ex: "Ex: Une boule de 2kg lancée à 3 m/s a une Ec = 0.5 × 2 × 3² = 9 Joules." },
+            { id: 303, topic: "3. Énergie Mécanique", q: "Comment calcule-t-on le travail d'une force constante F sur un trajet rectiligne AB ?", a: "W_AB(F) = F × AB × cos(α)", ex: "Ex: Tirer un traîneau sur 10m avec une force de 50N horizontale (angle 0°). W = 50 × 10 × cos(0) = 500 J." },
+            { id: 304, topic: "3. Énergie Mécanique", q: "Quand dit-on qu'un travail est 'moteur' ?", a: "Quand W > 0 (l'angle α est inférieur à 90°).", ex: "Ex: La force de traction d'une locomotive aide le train à avancer : c'est un travail moteur." },
+            { id: 305, topic: "3. Énergie Mécanique", q: "Quand dit-on qu'un travail est 'résistant' ?", a: "Quand W < 0 (l'angle α est supérieur à 90°).", ex: "Ex: La force de frottement de l'air freine le véhicule (angle 180°, cos(180) = -1). C'est un travail résistant." },
+            { id: 306, topic: "3. Énergie Mécanique", q: "Que dit le théorème de l'énergie cinétique ?", a: "La variation d'énergie cinétique (ΔEc) est égale à la somme des travaux des forces extérieures.", ex: "Ex: Ec_finale - Ec_initiale = W_moteur + W_frottements." },
+            { id: 307, topic: "3. Énergie Mécanique", q: "Quelle est la formule de la puissance mécanique P avec la vitesse ?", a: "P = F × v", ex: "Ex: Un treuil tire une charge avec une force de 1000N à la vitesse de 2 m/s. P = 1000 × 2 = 2000 Watts." },
+            { id: 308, topic: "3. Énergie Mécanique", q: "Par quels paramètres caractérise-t-on un vecteur Force ?", a: "Point d'application, direction, sens, et intensité (en Newton).", ex: "Ex: Poids (P) -> Centre de gravité, verticale, vers le bas, intensité P = m×g." },
+            { id: 309, topic: "3. Énergie Mécanique", q: "Quelle est l'unité légale du travail d'une force ?", a: "Le Joule (J).", ex: "Un travail, tout comme l'énergie cinétique ou thermique, est une forme d'énergie. Son unité est toujours le Joule." },
+            { id: 310, topic: "3. Énergie Mécanique", q: "Dans un référentiel galiléen, quel est le mouvement si la somme des forces est nulle ?", a: "Le système est au repos ou en Mouvement Rectiligne Uniforme (MRU).", ex: "C'est le principe d'Inertie de Newton. Sans force, un objet dans l'espace avance en ligne droite à l'infini." },
+
+            // Chap 4: Oxydo-Réduction
+            { id: 401, topic: "4. Oxydo-Réduction", q: "Quelle est la définition stricte d'un Oxydant ?", a: "Une espèce chimique capable de CAPTER un ou plusieurs électrons.", ex: "Moyen mnémotechnique : Un Oxydant prend (capte) des électrons. OXYDANT -> PREND." },
+            { id: 402, topic: "4. Oxydo-Réduction", q: "Quelle est la définition stricte d'un Réducteur ?", a: "Une espèce chimique capable de CÉDER un ou plusieurs électrons.", ex: "Moyen mnémotechnique : Le REDucteur Cède (donne). REDucteur -> CÈDE." },
+            { id: 403, topic: "4. Oxydo-Réduction", q: "Quelle est la loi de Faraday pour la quantité d'électricité ?", a: "Q = n_e⁻ × F (où n_e⁻ = nombre de moles d'électrons).", ex: "Ex: Si 2 moles d'électrons circulent, Q = 2 × 96500 = 193 000 Coulombs échangés." },
+            { id: 404, topic: "4. Oxydo-Réduction", q: "Quelle réaction chimique a lieu à l'ANODE d'une pile ?", a: "L'oxydation (perte d'électrons).", ex: "Mnémotechnique : Anode commence par une voyelle, Oxydation aussi. (A / O)." },
+            { id: 405, topic: "4. Oxydo-Réduction", q: "Quelle réaction chimique a lieu à la CATHODE d'une pile ?", a: "La réduction (gain d'électrons).", ex: "Mnémotechnique : Cathode commence par une consonne, Réduction aussi. (C / R)." },
+            { id: 406, topic: "4. Oxydo-Réduction", q: "Écris la demi-équation électronique du couple Cu²⁺ / Cu.", a: "Cu²⁺ + 2e⁻ ⇄ Cu", ex: "L'ion Cuivre (II) capte 2 électrons pour redevenir un atome de Cuivre solide." },
+            { id: 407, topic: "4. Oxydo-Réduction", q: "Quels sont les 'rejets' d'une pile à combustible (à hydrogène) ?", a: "Uniquement de l'eau (H₂O) et de la chaleur.", ex: "C'est pourquoi elle est considérée comme non polluante à l'utilisation sur un véhicule." },
+            { id: 408, topic: "4. Oxydo-Réduction", q: "Dans la pile à hydrogène, quelle est l'équation à l'anode (oxydation) ?", a: "H₂ ⇄ 2H⁺ + 2e⁻", ex: "Le gaz dihydrogène se sépare pour fournir deux électrons au circuit électrique." },
+            { id: 409, topic: "4. Oxydo-Réduction", q: "Que représente la constante de Faraday 'F' ?", a: "La charge électrique d'une mole d'électrons (environ 96 500 C/mol).", ex: "C'est une constante physique universelle qui lie la chimie (moles) à l'électricité (Coulombs)." },
+            { id: 410, topic: "4. Oxydo-Réduction", q: "Pourquoi une pile finit-elle par s'arrêter de fonctionner (être usée) ?", a: "Car elle a consommé la totalité de son réactif limitant (épuisement).", ex: "S'il n'y a plus de Zinc (Zn) à l'anode pour fournir des électrons, la pile est morte." },
+
+            // Chap 5: Énergie Solaire
+            { id: 501, topic: "5. Énergie Solaire", q: "Quelle est la célérité de la lumière dans le vide (ou dans l'air) ?", a: "c = 3 × 10⁸ m.s⁻¹", ex: "Soit environ 300 000 kilomètres par seconde ! La lumière du soleil met 8 min pour atteindre la Terre." },
+            { id: 502, topic: "5. Énergie Solaire", q: "Quelle est la formule de l'énergie (E) transportée par un photon ?", a: "E = h × f   ou   E = h × c / λ", ex: "Plus la fréquence 'f' de la lumière est haute (comme les UV ou Rayons X), plus l'énergie du photon est destructrice." },
+            { id: 503, topic: "5. Énergie Solaire", q: "Quelle est la capacité thermique massique de l'eau liquide (c_eau) ?", a: "c_eau = 4180 J·kg⁻¹·K⁻¹", ex: "Il faut apporter 4180 Joules pour élever la température d'1kg d'eau de 1 degré." },
+            { id: 504, topic: "5. Énergie Solaire", q: "Quelle formule donne l'énergie thermique (Q) pour chauffer un fluide ?", a: "Q = m × c × (θ_finale - θ_initiale)", ex: "Ex: Chauffer 2kg d'eau de 20°C à 30°C -> Q = 2 × 4180 × (30 - 20) = 83 600 J." },
+            { id: 505, topic: "5. Énergie Solaire", q: "Quelle est la formule du rendement énergétique (η) ?", a: "η = P_utile / P_reçue", ex: "Ex: Un panneau reçoit 1000W de soleil (reçue) et sort 200W électriques (utile). Rendement = 200/1000 = 0.2 (soit 20%)." },
+            { id: 506, topic: "5. Énergie Solaire", q: "Où se situe la puissance maximale (P_max) sur la courbe I-U d'un panneau solaire ?", a: "Dans le 'coude' de la caractéristique.", ex: "C'est là que le produit U × I est mathématiquement le plus grand." },
+            { id: 507, topic: "5. Énergie Solaire", q: "Quelle est la conversion d'1 Watt-heure (W.h) en Joules ?", a: "1 W.h = 3600 Joules.", ex: "Car 1 Heure = 3600 Secondes. Donc 1 Watt pendant 1 Heure = 3600 Joules." },
+            { id: 508, topic: "5. Énergie Solaire", q: "Quelles sont les bornes approximatives du spectre visible ?", a: "De 400 nm (violet) à 800 nm (rouge).", ex: "En dessous de 400nm ce sont les UV (ultraviolets). Au dessus de 800nm, les Infrarouges (IR)." },
+            { id: 509, topic: "5. Énergie Solaire", q: "Qu'est-ce que l'irradiance solaire ?", a: "La puissance lumineuse reçue par unité de surface (W·m⁻²).", ex: "En plein soleil en été, l'irradiance au sol est d'environ 1000 W/m²." },
+            { id: 510, topic: "5. Énergie Solaire", q: "Sur un graphe de panneau solaire, que représente I_cc ?", a: "L'intensité de court-circuit (courant maximal quand U=0).", ex: "Si on relie le + et le - du panneau directement, c'est le courant maximum qui va traverser le fil." },
+
+            // Chap 6: Acides et Bases
+            { id: 601, topic: "6. Acides et Bases", q: "Quelle est la définition mathématique du pH ?", a: "pH = -log [H₃O⁺]", ex: "Ex: Si la concentration [H₃O⁺] est de 10⁻³ mol/L, alors pH = -log(10⁻³) = 3." },
+            { id: 602, topic: "6. Acides et Bases", q: "Comment calcule-t-on la concentration [H₃O⁺] à partir du pH ?", a: "[H₃O⁺] = 10^(-pH)", ex: "Ex: Un soda a un pH de 4. Sa concentration acide est donc [H₃O⁺] = 10⁻⁴ mol/L." },
+            { id: 603, topic: "6. Acides et Bases", q: "À quelle condition une solution est-elle dite Acide ?", a: "Lorsque son pH est inférieur à 7 à 25°C.", ex: "L'échelle va de 0 (très acide) à 14 (très basique). 7 est neutre (l'eau pure)." },
+            { id: 604, topic: "6. Acides et Bases", q: "Qu'est-ce qu'un Acide (selon Brønsted) ?", a: "Une espèce chimique capable de CÉDER au moins un proton H⁺.", ex: "Ex: L'acide chlorhydrique (HCl) cède facilement son H⁺ pour devenir Cl⁻." },
+            { id: 605, topic: "6. Acides et Bases", q: "Qu'est-ce qu'une Base (selon Brønsted) ?", a: "Une espèce chimique capable de CAPTER au moins un proton H⁺.", ex: "Ex: L'ammoniac (NH₃) va capter un H⁺ pour devenir l'ion ammonium NH₄⁺." },
+            { id: 606, topic: "6. Acides et Bases", q: "Quelle est la formule du facteur de dilution F ?", a: "F = C_mère / C_fille = V_fille / V_mère", ex: "Ex: Si je prends 10mL (V_mère) et je rajoute de l'eau jusqu'à 100mL (V_fille). J'ai dilué 10 fois (F=10)." },
+            { id: 607, topic: "6. Acides et Bases", q: "Que fait le pH d'une solution acide si on la dilue avec de l'eau ?", a: "Son pH augmente et se rapproche de 7.", ex: "Plus tu mets d'eau, moins le liquide pique (moins il est acide). Le pH remonte vers la neutralité." },
+            { id: 608, topic: "6. Acides et Bases", q: "Quelle est la valeur du produit ionique de l'eau [H₃O⁺] × [HO⁻] à 25°C ?", a: "10⁻¹⁴", ex: "Dans n'importe quelle solution aqueuse, la multiplication des concentrations acides et basiques donne toujours 10⁻¹⁴." },
+            { id: 609, topic: "6. Acides et Bases", q: "Quel est l'ion responsable du caractère acide d'une solution ?", a: "L'ion oxonium H₃O⁺.", ex: "C'est la molécule d'eau H₂O qui a capté un proton H⁺ en trop." },
+            { id: 610, topic: "6. Acides et Bases", q: "Quel est l'ion responsable du caractère basique d'une solution ?", a: "L'ion hydroxyde HO⁻.", ex: "La soude caustique, très basique, est remplie d'ions HO⁻." },
+
+            // Chap 7: Changements d'état
+            { id: 701, topic: "7. Changements d'État", q: "Quelle formule donne l'énergie échangée lors d'un changement d'état ?", a: "Q = m × L", ex: "Ex: Faire fondre 2kg de glace (L=334kJ/kg). Q = 2 × 334 = 668 kJ d'énergie nécessaire." },
+            { id: 702, topic: "7. Changements d'État", q: "Quelle est l'unité de l'enthalpie (énergie massique) de changement d'état L ?", a: "Le Joule par kilogramme (J·kg⁻¹).", ex: "On l'exprime souvent en kJ/kg car les énergies de changement de phase sont énormes." },
+            { id: 703, topic: "7. Changements d'État", q: "Que se passe-t-il avec la température lors du changement d'état d'un corps pur ?", a: "Elle reste strictement constante (palier de température).", ex: "L'eau bout à 100°C. Tant qu'il reste de l'eau liquide dans la casserole, la température ne montera pas à 101°C." },
+            { id: 704, topic: "7. Changements d'État", q: "Comment nomme-t-on le passage de l'état Solide à l'état Liquide ?", a: "La fusion.", ex: "Un glaçon qui fond au soleil." },
+            { id: 705, topic: "7. Changements d'État", q: "Comment nomme-t-on le passage de l'état Liquide à l'état Gazeux ?", a: "La vaporisation.", ex: "L'eau des pâtes qui s'évapore en vapeur d'eau." },
+            { id: 706, topic: "7. Changements d'État", q: "Comment nomme-t-on le passage de l'état Gazeux à l'état Liquide ?", a: "La liquéfaction (ou condensation liquide).", ex: "La buée sur le miroir de la salle de bain après une douche chaude." },
+            { id: 707, topic: "7. Changements d'État", q: "Qu'est-ce que le 'point triple' sur un diagramme de phase ?", a: "Le point de température et de pression où les 3 états (S, L, G) coexistent.", ex: "C'est un équilibre thermodynamique précis où la glace, l'eau et la vapeur cohabitent." },
+            { id: 708, topic: "7. Changements d'État", q: "Quelle est la formule pour convertir les degrés Celsius en Kelvin ?", a: "T (en K) = θ (en °C) + 273", ex: "Ex: 20°C correspond à 20 + 273 = 293 K. Et le 'Zéro Absolu' est à -273°C = 0 K." },
+            { id: 709, topic: "7. Changements d'État", q: "La fusion de l'eau nécessite L = +334 kJ/kg. Que vaut L pour sa solidification ?", a: "L_solidification = -334 kJ/kg (l'énergie est libérée).", ex: "Quand de l'eau gèle, elle dégage de la chaleur (réaction exothermique) !" },
+            { id: 710, topic: "7. Changements d'État", q: "Pourquoi l'enthalpie de fusion L est-elle positive (>0) ?", a: "Car il faut fournir de l'énergie au système pour casser l'ordre moléculaire.", ex: "La glace a des liaisons solides. La chaleur apportée sert à 'casser' ces liaisons pour rendre l'eau liquide." },
+
+            // Chap 8: Combustion
+            { id: 801, topic: "8. Combustion", q: "Quels sont les 3 éléments du 'triangle du feu' ?", a: "Combustible, Comburant et Énergie d'activation.", ex: "Ex: Le bois (combustible), le vent/Oxygène (comburant) et l'étincelle/allumette (énergie d'activation)." },
+            { id: 802, topic: "8. Combustion", q: "Quels sont les 2 produits finaux d'une combustion COMPLÈTE d'alcane ?", a: "De l'eau (H₂O) et du dioxyde de carbone (CO₂).", ex: "C'est pour ça que de la fumée blanche (vapeur d'eau) sort parfois du pot d'échappement à froid." },
+            { id: 803, topic: "8. Combustion", q: "Quel est le risque majeur d'une combustion INCOMPLÈTE (manque de O₂) ?", a: "La formation de monoxyde de carbone (CO), un gaz mortel.", ex: "Une chaudière mal ventilée s'encrasse, manque d'air, et produit ce gaz incolore et inodore." },
+            { id: 804, topic: "8. Combustion", q: "Quelle formule lie l'énergie libérée et le PCI ?", a: "Q = m_combustible × PCI", ex: "Ex: Brûler 2 kg de bois (PCI=15 MJ/kg) libère une chaleur Q = 2 × 15 = 30 MJ." },
+            { id: 805, topic: "8. Combustion", q: "Que signifie le sigle 'PCI' ?", a: "Pouvoir Calorifique Inférieur (énergie libérée par kg de combustible).", ex: "C'est la jauge de 'puissance de chauffe' d'un combustible. Le fioul a un PCI bien plus élevé que le bois." },
+            { id: 806, topic: "8. Combustion", q: "Quel test simple permet de mettre en évidence la présence de CO₂ ?", a: "Le CO₂ trouble l'eau de chaux.", ex: "Si on fait buller la fumée de combustion dans de l'eau de chaux transparente, elle devient blanche/laiteuse." },
+            { id: 807, topic: "8. Combustion", q: "Quelle formule donne la quantité de matière 'n' (en mol) à partir de la masse ?", a: "n = m / M", ex: "Ex: On a m=120g de Carbone (dont la masse molaire M=12 g/mol). On a donc n = 120/12 = 10 moles." },
+            { id: 808, topic: "8. Combustion", q: "Quelle est l'unité de la masse molaire M ?", a: "Le gramme par mole (g·mol⁻¹).", ex: "Elle indique combien pèse une seule mole (soit 6.02x10²³ atomes) de cette molécule." },
+            { id: 809, topic: "8. Combustion", q: "Qu'appelle-t-on le 'réactif limitant' dans une réaction chimique ?", a: "Le réactif qui est totalement consommé en premier, arrêtant la réaction.", ex: "Si je mets 1kg de bois dans une cloche de verre fermée, c'est l'oxygène (trop peu) qui sera le réactif limitant." },
+            { id: 810, topic: "8. Combustion", q: "Lors d'un feu à l'air libre, quel est généralement le réactif en excès ?", a: "Le dioxygène (O₂) de l'air.", ex: "Puisque l'air extérieur est infini, c'est l'épuisement de la bûche de bois (réactif limitant) qui arrêtera le feu." },
+
+            // Chap 9: Transport et Distribution
+            { id: 901, topic: "9. Transport Électrique", q: "Quelle est la formule de la puissance dissipée par effet Joule dans une ligne ?", a: "P_Joule = R_L × I²", ex: "Ex: Une ligne de Résistance 2Ω parcourue par 10A perdra P = 2 × 10² = 200W en chaleur." },
+            { id: 902, topic: "9. Transport Électrique", q: "Pourquoi transporte-t-on le courant sur le réseau en Très Haute Tension (400kV) ?", a: "Pour diminuer l'intensité (I) et donc réduire drastiquement les pertes par effet Joule.", ex: "Puisque les pertes Joule dépendent de I au carré (I²), diviser le courant par 10 divise les pertes par 100 !" },
+            { id: 903, topic: "9. Transport Électrique", q: "Quelle est la formule de la résistance d'une ligne R_L (avec L et S) ?", a: "R_L = ρ × (2×L / S) ou ≈ (2 × 22.5 × L) / S pour le cuivre.", ex: "Plus le câble est long (L), plus il résiste. Plus il est gros (S), moins il résiste." },
+            { id: 904, topic: "9. Transport Électrique", q: "Quelles sont les formules du rapport de transformation 'm' ?", a: "m = N₂ / N₁ = U₂ / U₁ = I₁ / I₂", ex: "Ex: Un transfo 230V vers 12V a un rapport de m = 12 / 230 ≈ 0.05. Il abaisse la tension." },
+            { id: 905, topic: "9. Transport Électrique", q: "Quel est le composant électrique qui permet d'élever ou abaisser la tension ?", a: "Le transformateur.", ex: "Attention, le transformateur ne fonctionne QU'EN courant alternatif (AC), pas avec des piles (DC)." },
+            { id: 906, topic: "9. Transport Électrique", q: "Quelle est la formule de la puissance ACTIVE P en monophasé ?", a: "P = U × I × cos(φ)", ex: "Ex: Un moteur 230V, 5A avec cos(φ)=0.8. La puissance réelle qu'il tire est P = 230×5×0.8 = 920W." },
+            { id: 907, topic: "9. Transport Électrique", q: "En quelle unité exprime-t-on la puissance active P ?", a: "En Watt (W).", ex: "C'est la puissance qui est réellement transformée en travail utile (mécanique ou thermique)." },
+            { id: 908, topic: "9. Transport Électrique", q: "De quoi est composé le noyau magnétique d'un transformateur ?", a: "De fer doux (pour canaliser le champ magnétique).", ex: "Les bobines primaire et secondaire ne se touchent jamais, elles communiquent grâce à ce champ magnétique dans le fer." },
+            { id: 909, topic: "9. Transport Électrique", q: "Que cause physiquement l'effet Joule dans les câbles du réseau ?", a: "Leur échauffement, causant une perte d'énergie thermique.", ex: "Cette chaleur s'échappe dans l'air, c'est de l'énergie perdue que l'on doit produire pour rien à la centrale." },
+            { id: 910, topic: "9. Transport Électrique", q: "Si U₂ est inférieur à U₁, comment qualifie-t-on le transformateur ?", a: "De transformateur abaisseur de tension (m < 1).", ex: "Ex: Le chargeur de ton téléphone contient un transformateur abaisseur pour passer du 230V mural au 5V USB." },
+
+            // Chap 10: Protection Électrique
+            { id: 1001, topic: "10. Protection Électrique", q: "Quel dispositif protège les personnes contre les courants de fuite ?", a: "Le disjoncteur différentiel (DDR), associé à une prise de terre.", ex: "Le DDR calcule le courant qui entre et celui qui sort. S'il manque du courant, c'est qu'il passe dans ton corps -> il coupe !" },
+            { id: 1002, topic: "10. Protection Électrique", q: "Quel est le calibre habituel d'un DDR domestique de protection ?", a: "30 mA (milliampères).", ex: "Dès que 30mA s'échappent hors du fil neutre, le disjoncteur saute instantanément pour te sauver." },
+            { id: 1003, topic: "10. Protection Électrique", q: "À partir de quelle intensité le risque d'arrêt cardiaque devient-il mortel ?", a: "Au-delà de 30 à 50 mA.", ex: "Le cœur étant un muscle fonctionnant par impulsions électriques, le courant externe perturbe son rythme." },
+            { id: 1004, topic: "10. Protection Électrique", q: "Quelle est la Tension Limite de Sécurité dans un environnement SEC ?", a: "50 V (Volts).", ex: "Toucher une batterie de voiture de 12V ne te fera rien car c'est en dessous de cette limite." },
+            { id: 1005, topic: "10. Protection Électrique", q: "Quelle est la Tension Limite de Sécurité dans un environnement HUMIDE ?", a: "25 V (Volts).", ex: "Dans une salle de bain, l'eau rend le corps très conducteur, on baisse donc la norme de sécurité à 25V." },
+            { id: 1006, topic: "10. Protection Électrique", q: "Quelle loi électrique s'applique au corps humain lors d'un contact ?", a: "I = U_contact / R_corps", ex: "C'est la stricte loi d'Ohm. Le courant 'I' qui te traverse dépend de la tension (U) et de ta résistance (R)." },
+            { id: 1007, topic: "10. Protection Électrique", q: "Quel est le rôle de la 'prise de terre' dans une installation ?", a: "Évacuer le courant de défaut d'isolation vers le sol pour faire disjoncter.", ex: "Si un fil touche la carcasse de ta machine à laver, le courant fuit direct dans la terre au lieu de t'attendre." },
+            { id: 1008, topic: "10. Protection Électrique", q: "Quels sont les deux paramètres qui rendent un choc électrique dangereux ?", a: "L'intensité du courant et sa durée de passage dans le corps.", ex: "Même un fort courant peut ne pas tuer s'il est coupé en moins de 10 millisecondes par le disjoncteur." },
+            { id: 1009, topic: "10. Protection Électrique", q: "Que fait un disjoncteur 'magnéto-thermique' classique ?", a: "Il protège le matériel (et non l'humain) contre les courts-circuits et les surcharges.", ex: "Il empêche les fils de ta maison de fondre et de prendre feu si tu branches 10 radiateurs en même temps." },
+            { id: 1010, topic: "10. Protection Électrique", q: "Qu'est-ce qui fait fortement baisser la résistance du corps humain ?", a: "L'humidité (peau mouillée ou immergée).", ex: "Une peau sèche résiste à ~5000 Ohms, une peau mouillée chute à 1000 Ohms, laissant passer beaucoup plus de courant mortel." },
+
+            // Chap 11: Rotation
+            { id: 1101, topic: "11. Mécanique Rotation", q: "Comment se déplacent les points d'un solide en rotation pure ?", a: "Ils décrivent des cercles concentriques autour d'un axe fixe.", ex: "Tous les points d'une roue de vélo tournent autour du moyeu central." },
+            { id: 1102, topic: "11. Mécanique Rotation", q: "Quelle est la formule de la vitesse angulaire (ω) ?", a: "ω = Δθ / Δt", ex: "Ex: Une roue fait un demi-tour (Angle de π radians) en 2 secondes. Sa vitesse angulaire est ω = π / 2 = 1.57 rad/s." },
+            { id: 1103, topic: "11. Mécanique Rotation", q: "Quelle formule lie la vitesse linéaire v et la vitesse angulaire ω ?", a: "v = R × ω", ex: "Ex: Un pneu de Rayon 0.5m qui tourne à 10 rad/s roule sur la route à la vitesse v = 0.5 × 10 = 5 m/s." },
+            { id: 1104, topic: "11. Mécanique Rotation", q: "Comment convertit-on 1 tour par minute (tr/min) en rad/s ?", a: "Il faut multiplier par (2π / 60).", ex: "Ex: Un moteur à 3000 tr/min. ω = 3000 × (2π / 60) = 314 rad/s." },
+            { id: 1105, topic: "11. Mécanique Rotation", q: "Quelle est la formule du Moment d'une force M ?", a: "M = F × d (en N.m)", ex: "Ex: Tu appuies avec 100N sur une pédale de vélo de 0.2m (bras de levier). Le Moment M = 100 × 0.2 = 20 N.m." },
+            { id: 1106, topic: "11. Mécanique Rotation", q: "Dans le moment M = F × d, comment s'appelle la distance 'd' ?", a: "Le bras de levier.", ex: "Plus le bras de levier (d) est grand (comme avec une grande clé anglaise), moins on a besoin de Force (F) pour dévisser un boulon." },
+            { id: 1107, topic: "11. Mécanique Rotation", q: "Qu'est-ce qu'un 'couple de forces' ?", a: "Deux forces parallèles, de sens opposés et de même intensité, qui provoquent une rotation.", ex: "L'action de tes deux mains sur le volant d'une voiture pour tourner." },
+            { id: 1108, topic: "11. Mécanique Rotation", q: "Dans un couple, comment calcule-t-on le moment ?", a: "M = F × d (où d est la distance entre les 2 forces).", ex: "Si chaque main tire à 50N et que le volant fait 0.4m de diamètre, le Couple M = 50 × 0.4 = 20 N.m." },
+            { id: 1109, topic: "11. Mécanique Rotation", q: "Sur un graphe Couple-Vitesse, qu'est-ce que le Point de Fonctionnement ?", a: "L'intersection entre la courbe du moteur et la courbe de la charge.", ex: "C'est l'équilibre parfait où le moteur fournit exactement le couple que la machine (charge) lui demande." },
+            { id: 1110, topic: "11. Mécanique Rotation", q: "À quelle condition un moteur est-il capable de démarrer ?", a: "Son couple de démarrage doit être strictement supérieur au couple de la charge.", ex: "Si un ascenseur est trop lourd (Couple résistant de 500 N.m) et que le moteur démarre à 300 N.m, il ne bougera pas." },
+
+            // Chap 12: Ondes et Signaux
+            { id: 1201, topic: "12. Ondes EM", q: "Quelle est la relation entre longueur d'onde (λ), célérité (c) et fréquence (f) ?", a: "λ = c / f", ex: "Ex: Le Wifi à 2.4 GHz (2.4x10^9 Hz) a une longueur d'onde de λ = (3×10⁸) / (2.4×10⁹) = 0.125m (soit 12.5 cm)." },
+            { id: 1202, topic: "12. Ondes EM", q: "Quelle est la taille optimale d'une antenne dite 'quart d'onde' ?", a: "Longueur = λ / 4", ex: "Pour le Wifi de 12.5cm d'onde, l'antenne sur le routeur mesure souvent λ/4 = 12.5/4 = 3.1 cm." },
+            { id: 1203, topic: "12. Ondes EM", q: "Quel phénomène optique permet à la lumière d'avancer dans une fibre optique ?", a: "La réflexion totale interne à l'interface cœur-gaine.", ex: "La lumière rebondit en permanence sur les 'murs' de la gaine car elle ne peut pas s'échapper, comme dans un miroir tubulaire." },
+            { id: 1204, topic: "12. Ondes EM", q: "Comment doit être l'indice du cœur (n₁) par rapport à la gaine (n₂) dans une fibre ?", a: "L'indice du cœur doit être plus élevé (n₁ > n₂).", ex: "C'est la condition sine qua non pour que le phénomène physique de 'réflexion totale' existe (loi de Descartes)." },
+            { id: 1205, topic: "12. Ondes EM", q: "Quelle loi régit le phénomène de réfraction de la lumière ?", a: "La loi de Snell-Descartes : n₁ × sin(i₁) = n₂ × sin(i₂).", ex: "C'est la loi qui permet de calculer de combien un rayon de lumière va être 'cassé' en passant de l'air à l'eau." },
+            { id: 1206, topic: "12. Ondes EM", q: "Quel est l'indice de réfraction du vide et de l'air ?", a: "n = 1", ex: "L'indice n représente le ralentissement de la lumière. Dans l'eau (n=1.33), la lumière va 1.33 fois moins vite que c." },
+            { id: 1207, topic: "12. Ondes EM", q: "Quelle est la formule de l'atténuation d'un signal en décibels (A_dB) ?", a: "A_dB = 10 × log(P_entrée / P_sortie)", ex: "Ex: Si la puissance du signal optique est divisée par 10 à l'arrivée (P_sortie = P_entrée / 10), l'atténuation est de 10 dB." },
+            { id: 1208, topic: "12. Ondes EM", q: "Quelle est la plage de fréquences audibles par l'oreille humaine ?", a: "De 20 Hz à 20 000 Hz (20 kHz).", ex: "En dessous de 20 Hz ce sont les Infrasons (éléphants). Au dessus de 20kHz, les Ultrasons (chauves-souris)." },
+            { id: 1209, topic: "12. Ondes EM", q: "Pourquoi utilise-t-on la modulation (créer une porteuse) pour transmettre un signal ?", a: "Pour réduire la taille des antennes nécessaires et limiter les interférences.", ex: "Pour transmettre un son radio de 1 kHz, l'antenne ferait 75 km ! Moduler en Mégahertz permet d'avoir des antennes de 1 mètre." },
+            { id: 1210, topic: "12. Ondes EM", q: "Dans une réflexion (sur un miroir), quelle relation lie l'angle incident i₁ et réfléchi i'₁ ?", a: "i₁ = i'₁ (Ils sont égaux par rapport à la normale).", ex: "Un rayon laser frappant un miroir à 30 degrés rebondira géométriquement avec un angle parfait de 30 degrés." },
+
+            // Chap 13: Ondes Sonores & Puissance
+            { id: 1301, topic: "13. Ondes Sonores", q: "Quelle est la formule de l'intensité acoustique (I) en surface sphérique ?", a: "I = P / S  (en W·m⁻²)", ex: "Ex: Une enceinte de 50W (P) répartit son son sur une sphère de 10m² (S). L'intensité I = 50 / 10 = 5 W/m²." },
+            { id: 1302, topic: "13. Ondes Sonores", q: "Quelle est la formule du niveau sonore L ?", a: "L = 10 × log(I / I₀)", ex: "Le logarithme traduit la compression qu'effectue notre tympan pour ne pas exploser face aux forts écarts d'énergie." },
+            { id: 1303, topic: "13. Ondes Sonores", q: "Quelle est l'unité de mesure du niveau sonore (L) ?", a: "Le Décibel (dB).", ex: "Ex: Une bibliothèque silencieuse est à 30 dB. Une rue animée à 70 dB. Un marteau-piqueur à 100 dB (danger)." },
+            { id: 1304, topic: "13. Ondes Sonores", q: "Quelle est la valeur standard de I₀ (seuil d'audibilité) ?", a: "10⁻¹² W·m⁻²", ex: "C'est la plus infime vibration que le meilleur tympan humain au monde peut capter dans un silence total." },
+            { id: 1305, topic: "13. Ondes Sonores", q: "De combien de dB le niveau sonore augmente-t-il si on double les sources sonores ?", a: "Il augmente de +3 dB.", ex: "Ex: Une machine fait 80 dB. Si j'allume une DEUXIÈME machine identique à côté, le son total ne fait pas 160 dB, il fait 83 dB !" },
+            { id: 1306, topic: "13. Ondes Sonores", q: "De combien de dB le son baisse-t-il si on multiplie la distance par 10 ?", a: "Il diminue de -20 dB.", ex: "Ex: À 1 mètre, la sono fait 100 dB. Si tu recules à 10 mètres, tu n'entends plus que 100 - 20 = 80 dB." },
+            { id: 1307, topic: "13. Ondes Sonores", q: "Quelle est la formule de la Puissance Apparente (S) ?", a: "S = U_eff × I_eff  (en VA - Volt-Ampères)", ex: "Ex: Un transformateur 230V traversé par 10A doit être dimensionné pour supporter S = 230 × 10 = 2300 VA." },
+            { id: 1308, topic: "13. Ondes Sonores", q: "Quelle est l'unité de la Puissance Apparente S ?", a: "Le Volt-Ampère (VA).", ex: "On utilise le VA (et non le Watt) pour bien séparer la puissance de dimensionnement (câbles) de la puissance active (travail utile)." },
+            { id: 1309, topic: "13. Ondes Sonores", q: "Quelle est la formule du facteur de puissance (k) ?", a: "k = P / S = cos(φ)", ex: "Ex: Un radiateur électrique (purement résistif) a un déphasage φ = 0°. Son cos(φ) vaut 1, donc P = S." },
+            { id: 1310, topic: "13. Ondes Sonores", q: "Pourquoi le fournisseur (EDF) impose-t-il un facteur k supérieur à 0,93 ?", a: "Pour minimiser l'intensité (I) nécessaire, et donc éviter les fortes pertes par effet Joule.", ex: "Si ton cos(φ) d'usine est catastrophique (0.5), EDF devra envoyer 2x plus de courant (I) dans ses lignes pour te fournir tes Watts." }
+        ];
+
+        // --- 3. EXERCICES DE CALCUL ---
+        const calcProblems = [
+            {
+                id: 1, title: "Capacité d'accumulateur", unit: "A.h", answer: 15,
+                body: "Un accumulateur au lithium délivre un courant constant de <strong>I = 1.5 A</strong> pendant une durée de <strong>Δt = 10 heures</strong>. Calcule sa capacité électrique stockée Q.",
+                exp: "Formule : Q = I × Δt\nApplication : Q = 1.5 A × 10 h = 15 A.h."
+            },
+            {
+                id: 2, title: "Énergie de batterie", unit: "W.h", answer: 888,
+                body: "Une batterie possède une capacité <strong>Q = 74 A.h</strong> et une tension nominale <strong>U = 12 V</strong>. Calcule l'énergie totale W stockée.",
+                exp: "Formule : W = Q × U\nApplication : W = 74 A.h × 12 V = 888 W.h."
+            },
+            {
+                id: 3, title: "Résistance thermique", unit: "m².K.W⁻¹", answer: 0.22,
+                body: "Un mur en béton présente une épaisseur <strong>e = 0.20 m</strong>. Sa conductivité est <strong>λ = 0.92 W·m⁻¹·K⁻¹</strong>. Calcule sa résistance thermique R_TH. (Arrondis à 2 décimales).",
+                exp: "Formule : R_TH = e / λ\nApplication : R_TH = 0.20 / 0.92 = 0.2173... => 0.22 m².K.W⁻¹."
+            },
+            {
+                id: 4, title: "Flux thermique global", unit: "W", answer: 600,
+                body: "Une paroi <strong>S = 20 m²</strong> a une résistance globale de <strong>R_TH = 0.50 m²·K·W⁻¹</strong>. L'écart de température est de <strong>Δθ = 15°C</strong>. Calcule le flux thermique Φ perdu.",
+                exp: "Formule : Φ = S × Δθ / R_TH\nApplication : Φ = 20 m² × 15°C / 0.50 = 600 W."
+            },
+            {
+                id: 5, title: "Énergie Cinétique", unit: "J", answer: 240000,
+                body: "Un chariot de masse <strong>m = 1200 kg</strong> se déplace à la vitesse constante de <strong>v = 20 m·s⁻¹</strong>. Calcule son énergie cinétique E_c.",
+                exp: "Formule : E_c = ½ × m × v²\nApplication : E_c = 0.5 × 1200 × 20² = 240 000 J."
+            },
+            {
+                id: 6, title: "Puissance Active absorbée", unit: "W", answer: 920,
+                body: "Un moteur électrique absorbe <strong>I = 5.0 A</strong> sous <strong>U = 230 V</strong>. Son facteur de puissance (cos φ) vaut <strong>0.80</strong>. Calcule la puissance active P consommée.",
+                exp: "Formule : P = U × I × cos(φ)\nApplication : P = 230 × 5.0 × 0.80 = 920 W."
+            },
+            {
+                id: 7, title: "Niveau sonore acoustique", unit: "dB", answer: 70,
+                body: "Une machine génère une intensité acoustique <strong>I = 10⁻⁵ W·m⁻²</strong>. Calcule la valeur correspondante du niveau sonore L. (Donnée : I₀ = 10⁻¹² W·m⁻²).",
+                exp: "Formule : L = 10 × log(I / I₀)\nApplication : L = 10 × log(10⁻⁵ / 10⁻¹²) = 10 × log(10⁷) = 70 dB."
+            }
+        ];
+
+        // --- 4. ENGINE STATE ---
+        let userStats = {
+            cardWeights: {}, // id -> weight. Default weight is 10.
+            solvedCalcs: {}
+        };
+        let currentCard = null;
+        let isCardFlipped = false;
+        let currentCalcIndex = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProgress();
+            renderCourses();
+            initFlashcardSelect();
+            drawNextSRSFlashcard();
+            loadCalcProblem(currentCalcIndex);
+            renderCalcSidebar();
+            updateDashboard();
+        });
+
+        function initFlashcardSelect() {
+            const select = document.getElementById('flashcard-topic-select');
+            courseData.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.title}</option>`;
+            });
+        }
+
+        // Tab Navigation
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-950', 'text-white');
+                btn.classList.add('text-indigo-200', 'hover:bg-indigo-800');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('bg-indigo-950', 'text-white');
+
+            document.querySelectorAll('[id^="m-nav-"]').forEach(btn => {
+                btn.classList.remove('text-white');
+                btn.classList.add('text-indigo-300');
+            });
+            const activeMobileBtn = document.getElementById(`m-nav-${tabId}`);
+            if (activeMobileBtn) activeMobileBtn.classList.add('text-white');
+            
+            window.scrollTo(0, 0);
+        }
+
+        // --- 5. SRS ALGORITHM ---
+        function drawNextSRSFlashcard() {
+            // Compute weights pool
+            const selectedTopicId = document.getElementById('flashcard-topic-select').value;
+            let totalWeight = 0;
+            
+            let pool = flashcardsData.filter(c => {
+                if (selectedTopicId === 'all') return true;
+                return Math.floor(c.id / 100) === parseInt(selectedTopicId);
+            }).map(c => {
+                let w = userStats.cardWeights[c.id] !== undefined ? userStats.cardWeights[c.id] : 10;
+                totalWeight += w;
+                return { ...c, weight: w };
+            });
+
+            // Random draw based on weight
+            let random = Math.random() * totalWeight;
+            let sum = 0;
+            for (let c of pool) {
+                sum += c.weight;
+                if (random <= sum) {
+                    currentCard = c;
+                    break;
+                }
+            }
+
+            // Reset UI
+            isCardFlipped = false;
+            document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+            document.getElementById('srs-controls').classList.add('hidden');
+            
+            // Allow animation to finish before text swap if needed, but since it's an immediate load:
+            setTimeout(() => {
+                document.getElementById('card-topic').innerText = currentCard.topic;
+                document.getElementById('card-question').innerText = currentCard.q;
+                document.getElementById('card-answer').innerText = currentCard.a;
+            }, 100);
+        }
+
+        function flipCard() {
+            if(isCardFlipped) return; // Prevent double clicking ruining the UI
+            isCardFlipped = true;
+            document.getElementById('flashcard-inner').classList.add('rotate-y-180');
+            document.getElementById('srs-controls').classList.remove('hidden');
+        }
+
+        function handleSRS(rating) {
+            let currentWeight = userStats.cardWeights[currentCard.id] !== undefined ? userStats.cardWeights[currentCard.id] : 10;
+            
+            if (rating === 'oubli') {
+                currentWeight += 10; // Punish heavily, make it appear more
+            } else if (rating === 'moyen') {
+                currentWeight = Math.max(1, currentWeight - 1); // Slight decrease
+            } else if (rating === 'facile') {
+                currentWeight = Math.max(1, currentWeight - 5); // Huge decrease, card becomes weight 1
+            }
+
+            userStats.cardWeights[currentCard.id] = currentWeight;
+            saveProgress();
+            updateDashboard();
+            drawNextSRSFlashcard();
+        }
+
+        // --- NOUVELLES FONCTIONS MODALE D'EXEMPLE ---
+        function openExampleModal() {
+            const modal = document.getElementById('example-modal');
+            const textZone = document.getElementById('modal-example-text');
+            
+            // On injecte l'exemple propre à la carte actuelle
+            if(currentCard && currentCard.ex) {
+                textZone.innerHTML = currentCard.ex;
+            } else {
+                textZone.innerHTML = "<i>Aucun exemple spécifique requis, la définition s'applique telle quelle.</i>";
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeExampleModal() {
+            const modal = document.getElementById('example-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // --- 6. CORE LOGICS ---
+        function loadProgress() {
+            const saved = localStorage.getItem('bac_srs_stats_v2');
+            if (saved) {
+                try { userStats = JSON.parse(saved); } catch(e) {}
+            }
+            if(!userStats.cardWeights) userStats.cardWeights = {};
+        }
+
+        function saveProgress() {
+            localStorage.setItem('bac_srs_stats_v2', JSON.stringify(userStats));
+        }
+
+        function resetData() {
+            if (confirm("Réinitialiser ta progression effacera ta mémorisation. Continuer ?")) {
+                localStorage.removeItem('bac_srs_stats_v2');
+                userStats = { cardWeights: {}, solvedCalcs: {} };
+                currentCalcIndex = 0;
+                saveProgress();
+                drawNextSRSFlashcard();
+                loadCalcProblem(currentCalcIndex);
+                renderCalcSidebar();
+                updateDashboard();
+                switchTab('dashboard');
+            }
+        }
+
+        function updateDashboard() {
+            let mastered = 0;
+            let struggling = 0;
+            let interacted = Object.keys(userStats.cardWeights).length;
+
+            for (let w of Object.values(userStats.cardWeights)) {
+                if (w <= 5) mastered++;
+                if (w > 12) struggling++;
+            }
+
+            let numCalcs = Object.keys(userStats.solvedCalcs).length;
+
+            document.getElementById('stat-cards').innerText = interacted;
+            document.getElementById('stat-mastered').innerText = `${mastered} / 130`;
+            document.getElementById('stat-struggle').innerText = struggling;
+            document.getElementById('stat-calcs').innerText = `${numCalcs} / ${calcProblems.length}`;
+
+            // Gauge computing
+            // Mastery ratio gives max 45%, Calcs give max 25%, Base is 30%
+            let calcRatio = (numCalcs / calcProblems.length) * 25;
+            let flashRatio = (mastered / flashcardsData.length) * 45;
+            let bacProbability = Math.round(30 + calcRatio + flashRatio);
+            if (bacProbability > 100) bacProbability = 100;
+
+            document.getElementById('gauge-percentage').innerText = bacProbability + "%";
+            const circle = document.getElementById('gauge-progress');
+            const circumference = 263.89;
+            circle.style.strokeDashoffset = circumference - (bacProbability / 100) * circumference;
+
+            let quote = "";
+            if (bacProbability < 45) {
+                quote = '"Chauffe le moteur !" 🛠️'; circle.style.stroke = "#f59e0b";
+            } else if (bacProbability < 75) {
+                quote = '"Tu gagnes en puissance !" 🚀'; circle.style.stroke = "#3b82f6";
+            } else {
+                quote = '"Expert absolu !" 🏆'; circle.style.stroke = "#10b981";
+            }
+            document.getElementById('prof-quote').innerText = quote;
+
+            renderCourseMastery();
+        }
+
+        function renderCourseMastery() {
+            const container = document.getElementById('course-mastery-list');
+            if (!container) return;
+            container.innerHTML = "";
+            
+            courseData.forEach(c => {
+                // Trouver toutes les cartes liées à ce cours (les id des cartes commencent par l'id du cours ex: 101 -> Cours 1)
+                const courseCards = flashcardsData.filter(card => Math.floor(card.id / 100) === c.id);
+                let totalProgress = 0;
+                
+                courseCards.forEach(card => {
+                    let w = userStats.cardWeights[card.id] !== undefined ? userStats.cardWeights[card.id] : 10;
+                    // L'algorithme: Un poids de base (10) donne 0% de maitrise. Un poids de 1 (Parfait) donne 100%.
+                    let progress = Math.max(0, 10 - w) / 9 * 100;
+                    totalProgress += progress;
+                });
+                
+                let avgMastery = Math.round(totalProgress / courseCards.length);
+                let icon = c.pole === "Énergie" ? "fa-bolt" : c.pole === "Matière" ? "fa-atom" : "fa-wave-square";
+
+                const html = `
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-4">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <div class="p-2 bg-indigo-600 text-white rounded-lg text-sm flex items-center justify-center w-8 h-8">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-slate-800 text-xs truncate">${c.title}</h4>
+                            </div>
+                            <span class="text-sm font-black text-indigo-600">${avgMastery}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="bg-indigo-600 h-full transition-all duration-500" style="width: ${avgMastery}%"></div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function renderCourses() {
+            const accordion = document.getElementById('course-accordion');
+            accordion.innerHTML = "";
+            courseData.forEach(c => {
+                const html = `
+                    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden">
+                        <button onclick="toggleAccordion(${c.id})" class="w-full text-left px-5 py-4 font-bold text-slate-800 hover:bg-slate-50 transition flex items-center justify-between outline-none">
+                            <span class="text-sm truncate">${c.title}</span>
+                            <i id="arrow-${c.id}" class="fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+                        </button>
+                        <div id="content-${c.id}" class="hidden px-5 pb-5 pt-2 border-t border-slate-50 text-sm text-slate-600 leading-relaxed">${c.content}</div>
+                    </div>`;
+                accordion.innerHTML += html;
+            });
+        }
+
+        function toggleAccordion(id) {
+            const content = document.getElementById(`content-${id}`);
+            const arrow = document.getElementById(`arrow-${id}`);
+            content.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        function renderCalcSidebar() {
+            const container = document.getElementById('calc-sidebar-list');
+            container.innerHTML = "";
+            calcProblems.forEach((p, idx) => {
+                const isSolved = userStats.solvedCalcs[p.id] === true;
+                const style = isSolved ? "bg-emerald-500 text-white" : (idx === currentCalcIndex ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 border");
+                container.innerHTML += `<button onclick="loadCalcProblem(${idx})" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition ${style}">${idx + 1}. ${p.title}</button>`;
+            });
+        }
+
+        function loadCalcProblem(index) {
+            currentCalcIndex = index;
+            const p = calcProblems[index];
+            document.getElementById('calc-active-title').innerText = `Exercice ${index + 1} : ${p.title}`;
+            document.getElementById('calc-question-body').innerHTML = `<p class="font-medium text-slate-900">${p.body}</p>`;
+            document.getElementById('calc-unit-addon').innerText = p.unit;
+
+            const isSolved = userStats.solvedCalcs[p.id] === true;
+            const statusBadge = document.getElementById('calc-active-status');
+            const inputField = document.getElementById('calc-user-input');
+
+            document.getElementById('calc-explanation-pane').classList.add('hidden');
+            inputField.value = "";
+
+            if (isSolved) {
+                statusBadge.innerText = "Résolu"; statusBadge.className = "bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded";
+                inputField.value = p.answer; inputField.disabled = true;
+                showCalcExplanation(true);
+            } else {
+                statusBadge.innerText = "À faire"; statusBadge.className = "bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded";
+                inputField.disabled = false;
+            }
+            renderCalcSidebar();
+        }
+
+        function checkCalculation() {
+            const p = calcProblems[currentCalcIndex];
+            const userVal = parseFloat(document.getElementById('calc-user-input').value);
+            if (isNaN(userVal)) return alert("Saisis une valeur numérique valide.");
+
+            const isCorrect = Math.abs(userVal - p.answer) <= 0.05;
+            if (isCorrect) {
+                userStats.solvedCalcs[p.id] = true;
+                saveProgress(); updateDashboard(); renderCalcSidebar();
+                document.getElementById('calc-user-input').disabled = true;
+            }
+            showCalcExplanation(isCorrect);
+        }
+
+        function showCalcExplanation(isCorrect) {
+            const pane = document.getElementById('calc-explanation-pane');
+            const header = document.getElementById('calc-result-header');
+            const text = document.getElementById('calc-explanation-text');
+            pane.classList.remove('hidden');
+            
+            if (isCorrect) {
+                header.className = 'p-4 rounded-xl mb-4 font-bold flex items-center space-x-2 bg-emerald-50 text-emerald-800';
+                header.innerHTML = '<i class="fas fa-check text-emerald-600"></i><span>Valeur exacte !</span>';
+            } else {
+                header.className = 'p-4 rounded-xl mb-4 font-bold flex items-center space-x-2 bg-red-50 text-red-800';
+                header.innerHTML = '<i class="fas fa-times text-red-600"></i><span>Résultat erroné. Analyse la correction ci-dessous :</span>';
+            }
+            text.innerText = calcProblems[currentCalcIndex].exp;
+        }
+    </script>
+</body>
+</html>
