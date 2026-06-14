@@ -185,6 +185,7 @@
                     <div class="max-w-sm mx-auto">
                         <select id="flashcard-topic-select" onchange="drawNextSRSFlashcard()" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer transition">
                             <option value="all">Toutes les fiches (Mélange global)</option>
+                            <option value="struggling">⚠️ Uniquement les cartes à renforcer</option>
                             <!-- Rempli dynamiquement -->
                         </select>
                     </div>
@@ -582,12 +583,29 @@
             
             let pool = flashcardsData.filter(c => {
                 if (selectedTopicId === 'all') return true;
+                if (selectedTopicId === 'struggling') {
+                    let w = userStats.cardWeights[c.id] !== undefined ? userStats.cardWeights[c.id] : 10;
+                    return w > 12; // Correspond au compteur "Cartes à renforcer" du Dashboard
+                }
                 return Math.floor(c.id / 100) === parseInt(selectedTopicId);
             }).map(c => {
                 let w = userStats.cardWeights[c.id] !== undefined ? userStats.cardWeights[c.id] : 10;
                 totalWeight += w;
                 return { ...c, weight: w };
             });
+
+            // Gestion du cas où le joueur n'a aucune carte à renforcer
+            if (pool.length === 0) {
+                currentCard = null;
+                isCardFlipped = false;
+                document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+                document.getElementById('srs-controls').classList.add('hidden');
+                
+                document.getElementById('card-topic').innerText = "Excellent !";
+                document.getElementById('card-question').innerText = "Tu n'as aucune carte en difficulté à renforcer pour le moment. 🎉";
+                document.getElementById('card-answer').innerText = "Change de mode dans le menu déroulant au-dessus.";
+                return;
+            }
 
             // Random draw based on weight
             let random = Math.random() * totalWeight;
@@ -614,7 +632,7 @@
         }
 
         function flipCard() {
-            if(isCardFlipped) return; // Prevent double clicking ruining the UI
+            if(isCardFlipped || !currentCard) return; // Prevent double clicking ruining the UI or flipping when no card
             isCardFlipped = true;
             document.getElementById('flashcard-inner').classList.add('rotate-y-180');
             document.getElementById('srs-controls').classList.remove('hidden');
